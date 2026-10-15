@@ -16,8 +16,13 @@ const size_t kMaxBufferedOutput = 32 Mb;
 // Flush buffered output from the current chunk after reaching this threshold, if possible
 const size_t kBufferedOutputFlushThreshold = 32 Kb;
 
-// File list compression level, 0-9
-const int kFileListCompressionLevel = 1;
+// File list compression level, 0-9. Must stay >= 3: lz4 1.10 routes levels 1-2
+// to LZ4MID, whose no-match skip step grows with the distance since the last
+// encoded match (lz4hc.c, "skip faster over incompressible data"). The file
+// table opens with the incompressible per-file entry array, so by the end of it
+// the step is tens of KB, every later probe misses LZ4's 64 KB window, and the
+// whole path buffer comes out as literals.
+const int kFileListCompressionLevel = 3;
 
 // File data compression level, 0-9
 const int kFileDataCompressionLevel = 3;
